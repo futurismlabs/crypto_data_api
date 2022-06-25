@@ -1,7 +1,9 @@
 import time
 import datetime
+import traceback
 import pandas as pd
 from binance.client import Client
+from dateutil.relativedelta import relativedelta
 
 
 class BinanceAPI:
@@ -86,6 +88,49 @@ class BinanceAPI:
                     break
             return result[-count:].reset_index(drop=True)
 
+    def get_spot_data_by_month(self, symbol: str, year: int, month: int):
+        start_time = datetime.datetime(year, month, 1)
+        end_time = start_time + relativedelta(months=1) - pd.Timedelta(minutes=1)
+
+        get_func = self._get_spot_data
+
+        try:
+            data = get_func(symbol=symbol,
+                            interval='1m',
+                            start_time=int(start_time.timestamp() * 1000),
+                            end_time=int(end_time.timestamp() * 1000))
+            start_time = data.iloc[-1]['Open time'] - pd.Timedelta(hours=10)
+
+            if end_time <= start_time:
+                done = True
+            else:
+                done = False
+
+            result = data
+            prev_start_time = None
+
+            while not done:
+                time.sleep(0.1)
+                data = get_func(symbol=symbol,
+                                interval='1m',
+                                start_time=int(start_time.timestamp() * 1000),
+                                end_time=int(end_time.timestamp() * 1000))
+                start_time = data.iloc[-1]['Open time'] - pd.Timedelta(hours=10)
+                data = data[~data['Open time'].isin(result['Open time'])]
+                result = pd.concat([result, data], axis=0)
+
+                if prev_start_time == start_time:
+                    done = True
+                else:
+                    prev_start_time = start_time
+
+        except:
+            traceback.print_exc()
+            print(f'BinanceAPI.get_data_by_month({symbol}, {year}, {month}) -> API error')
+            result = None
+
+        return result
+
 
 if __name__ == '__main__':
     api = BinanceAPI()
@@ -99,5 +144,9 @@ if __name__ == '__main__':
     print(btcusdt)
 
     # 3. Spot OHLCV API request
-    btcusdt = api.get_spot_data(symbol='BTCUSDT', interval='1m', count=100000)
+    btcusdt = api.get_spot_data(symbol='BTCUSDT', interval='1m', count=100)
     print(btcusdt)
+
+    # 4. Request OHLCV data by month
+    data = api.get_spot_data_by_month(symbol='BTCUSDT', year=2021, month=1)
+    print(data)
