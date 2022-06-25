@@ -17,7 +17,7 @@ class BinanceAPI:
     def get_spot_info(self):
         return self.client.get_exchange_info()
 
-    def get_spot_tickers(self):
+    def get_spot_symbols(self):
         info = self.get_spot_info()
         is_spot = lambda d: 'USDT' in d['symbol'] and 'SPOT' in d['permissions']
         symbols = [d['symbol'] for d in info['symbols'] if is_spot(d)]
@@ -135,9 +135,9 @@ class BinanceAPI:
 if __name__ == '__main__':
     api = BinanceAPI()
 
-    # 1. Spot Tickers
-    tickers = api.get_spot_tickers()
-    print(tickers)
+    # 1. Spot Symbols
+    symbols = api.get_spot_symbols()
+    print(symbols)
 
     # 2. Low level request of spot OHLCV data
     btcusdt = api._get_spot_data(symbol='BTCUSDT', interval='1h')
