@@ -11,9 +11,6 @@ class BinanceAPI:
     def __init__(self):
         self.client = Client()
 
-    def get_tickers(self):
-        return self.client.get_all_tickers()
-
     def get_spot_info(self):
         return self.client.get_exchange_info()
 
@@ -67,12 +64,19 @@ class BinanceAPI:
                       symbol: str,
                       interval: str,
                       count: int):
+        """
+        :param symbol: BTCUSDT, ETHUSDT, ...
+        :param interval: 1m, 5m, 15m, 60m, 120m, 240m, ...
+        :param count: integer
+        :return: pd.DataFrame
+        """
+        return_columns = ['Open time', 'Open', 'High', 'Low', 'Close', 'Volume']
         mins = int(interval.replace('m', ''))
         if mins >= 60:
             interval = f'{mins // 60}h'
         data = self._get_spot_data(symbol, interval)
         if len(data) >= count:
-            return data.iloc[-count:].reset_index(drop=True)
+            return data.iloc[-count:].reset_index(drop=True)[return_columns]
         else:
             result = data
             result_len = len(result)
@@ -86,7 +90,7 @@ class BinanceAPI:
                     result_len = len(result)
                 else:
                     break
-            return result[-count:].reset_index(drop=True)
+            return result[-count:].reset_index(drop=True)[return_columns]
 
     def get_spot_data_by_month(self, symbol: str, year: int, month: int):
         start_time = datetime.datetime(year, month, 1)
@@ -129,11 +133,14 @@ class BinanceAPI:
             print(f'BinanceAPI.get_data_by_month({symbol}, {year}, {month}) -> API error')
             result = None
 
-        return result
+        return result[['Open time', 'Open', 'High', 'Low', 'Close', 'Volume']]
 
 
 if __name__ == '__main__':
     api = BinanceAPI()
+
+    info = api.get_spot_info()
+    print(info)
 
     # 1. Spot Symbols
     symbols = api.get_spot_symbols()

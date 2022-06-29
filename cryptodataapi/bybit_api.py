@@ -36,15 +36,14 @@ class BybitAPI:
 
         data = self.spot_api.query_kline(symbol=symbol, interval=interval)
         df = pd.DataFrame(data['result'])
-        df.columns = ['startTime', 'open', 'high', 'low', 'close',
-                      'volume', 'endTime', 'quoteAssetVolume', 'trades',
+        df.columns = ['Open time', 'Open', 'High', 'Low', 'Close',
+                      'Volume', 'endTime', 'quoteAssetVolume', 'trades',
                       'takerBaseVolume', 'takerQuoteVolume']
-        df = df[['startTime', 'open', 'high', 'low', 'close', 'volume']]
+        df = df[['Open time', 'Open', 'High', 'Low', 'Close', 'Volume']]
         tz = pytz.timezone('Asia/Seoul')
-        df['start_at'] = df['startTime'].apply(lambda t: datetime.datetime.fromtimestamp(t / 1000, tz))
-        df.drop('startTime', axis=1, inplace=True)
+        df['Open time'] = df['Open time'].apply(lambda t: datetime.datetime.fromtimestamp(t / 1000, tz))
 
-        result = df[df['start_at'] < datetime.datetime.now(tz=tz).strftime(date_fmt)]
+        result = df[df['Open time'] < datetime.datetime.now(tz=tz).strftime(date_fmt)]
         if count is None:
             result = result.reset_index(drop=True)
         else:
