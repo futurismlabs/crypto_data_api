@@ -8,7 +8,7 @@ install_requires = [
 
 setuptools.setup(
     name='cryptodataapi',
-    version='0.0.2',
+    version='0.0.3',
     author='Futurism Labs',
     author_email='futurismteam@gmail.com',
     py_modules=['cryptodataapi'],

@@ -24,7 +24,7 @@ class BinanceAPI:
                        symbol: str,
                        interval: str,
                        start_time: int = None,
-                       end_time: int = int(datetime.datetime.now().timestamp() * 1000)):
+                       end_time: int = None):
         """
         :param symbol: BTCUSDT
         :param interval: 1m, 3m, 5m, 10m, 15m, 1h, 4h, 1d
@@ -32,6 +32,9 @@ class BinanceAPI:
         :param end_time: timestamp
         :return: pd.DataFrame
         """
+        if not end_time:
+            end_time = int(datetime.datetime.now().timestamp() * 1000)
+
         columns = [
             'Open time',
             'Open',
